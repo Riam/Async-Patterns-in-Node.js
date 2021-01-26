@@ -7,30 +7,35 @@ const router = express.Router();
 router.route('/')
   .get(function (req, res) {
 
-    getClothingData((err, data) => {
-      if (err) {
-        console.error(err);
-      } else {
+    getClothingData()
+      .then((data) => {
         res.send(data);
-        console.log("Returning data to client");
+        console.log("Sending data to client.");
+      })
+      .catch((error) => {
+        res.status(500).send(error);
+        console.log(error);
+      })
+      .finally(() => {
+        console.log("Promise work is all done.");
+      });
+
+    console.log("Doing other work.");
+  });
+
+function getClothingData() {
+  return new Promise((resolve, reject) => {
+    console.log("Reading from disk");
+    fs.readFile(datafile, 'utf8', (err, data) => {
+      if (err) {
+        reject(err);
+      }
+      else {
+        let clothingData = JSON.parse(data);
+        resolve(clothingData);
       };
     });
-
-    console.log("Doing other work.")
   });
-
-function getClothingData(callback) {
-  fs.readFile(datafile, 'utf8', (err, data) => {
-    if (err) {
-      callback(err, null);
-    }
-    else {
-      let clothingData = JSON.parse(data);
-      callback(null, clothingData);
-    }
-  });
-
-  console.log("Reading data");
 }
 
 module.exports = router;
